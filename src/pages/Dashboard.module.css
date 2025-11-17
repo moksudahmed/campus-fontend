@@ -1,0 +1,60 @@
+/* === Page Container === */
+.container {
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 48px;
+}
+
+/* === Stats Card Layout === */
+.cardGrid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 24px;
+}
+
+@media (min-width: 768px) {
+  .cardGrid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+/* === Recent Activity Section === */
+.activitySection {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.activityTitle {
+  font-size: 1.75rem;
+  font-weight: 600;
+  color: #1f2937;
+  padding-bottom: 8px;
+  border-bottom: 2px solid #e5e7eb;
+}
+
+.activityList {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* === Icon Colors === */
+.iconIndigo {
+  width: 32px;
+  height: 32px;
+  color: #4338ca;
+}
+
+.iconGreen {
+  width: 32px;
+  height: 32px;
+  color: #059669;
+}
+
+.iconYellow {
+  width: 32px;
+  height: 32px;
+  color: #ca8a04;
+}

@@ -120,11 +120,11 @@ export const deleteUser = async (id, token) => {
   });
 };
 
-export const resetPassword = async (payload, token) => {  
+export const changePassword = async (payload, token) => {  
   try {
     // Destructure and validate payload
-    
-    const { student_id, login_id, password } = payload;
+    console.log("Auth File", payload);
+    const { student_id, password } = payload;
     if (!student_id || !password) {
       throw new Error("Missing student ID or password.");
     }
@@ -141,6 +141,7 @@ export const resetPassword = async (payload, token) => {
       },
       body: JSON.stringify({
         //login_id,
+        student_id,
         new_password: password, // use consistent naming with backend
       }),
     });
@@ -166,6 +167,55 @@ export const resetPassword = async (payload, token) => {
     throw new Error(error.message || "Unexpected error while resetting password.");
   }
 };
+
+export const changeEmail = async (payload, token) => {
+  try {
+    console.log("🔄 Change Email Payload:", payload);
+
+    const { student_id, new_email } = payload;
+
+    if (!student_id || !new_email) {
+      throw new Error("Student ID and new email are required.");
+    }
+
+    const endpoint = `${API_URL}change-email/${student_id}`;
+
+    // Send API request
+    const response = await fetch(endpoint, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        ...(token && { Authorization: `Bearer ${token}` }),
+      },
+      body: JSON.stringify({
+        student_id,
+        email: new_email,
+      }),
+    });
+
+    // Attempt to parse JSON safely
+    let data;
+    try {
+      data = await response.json();
+    } catch {
+      throw new Error("Invalid response from server.");
+    }
+
+    // Handle error responses
+    if (!response.ok) {
+      console.error("❌ Server Error:", data);
+      throw new Error(data?.message || data?.detail || "Failed to update email.");
+    }
+
+    console.log("✅ Email updated successfully:", data);
+    return data;
+
+  } catch (error) {
+    console.error("❌ Change Email Error:", error.message || error);
+    throw new Error(error.message || "Unexpected error while updating email.");
+  }
+};
+
 // Frontend:
 export const assignRole = async (id, role, token) => {
     return fetch(`${API_URL}assign-role/${id}`, {

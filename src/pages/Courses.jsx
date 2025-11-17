@@ -1,153 +1,157 @@
 import React, { useEffect, useState } from "react";
 import { fetchCourses } from "../api/course";
 import jsPDF from "jspdf";
-import autoTable from "jspdf-autotable"; // ✅ import properly
+import autoTable from "jspdf-autotable";
+import styles from "./Courses.module.css";
 
 const Courses = ({ student_id, token }) => {
   const [courses, setCourses] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  const getTerm = (term) => {
-    if (term === 1) return "Spring";
-    else if (term === 2) return "Summer";
-    else if (term === 3) return "Autumn";
-    else return "Not specified";
+  // Convert numeric term to academic term label
+  const formatTerm = (term) => {
+    switch (term) {
+      case 1:
+        return "Spring";
+      case 2:
+        return "Summer";
+      case 3:
+        return "Autumn";
+      default:
+        return "Not Specified";
+    }
   };
 
+  // Fetch enrolled courses
   useEffect(() => {
-    const loadData = async () => {
+    const loadCourses = async () => {
       try {
-        const fetchData = await fetchCourses(student_id, token);
-        setCourses(fetchData || []);
-        console.log(fetchData);
-      } catch (err) {
-        console.error("Failed to load student courses record", err);
+        const data = await fetchCourses(student_id, token);
+        setCourses(data || []);
+      } catch (error) {
+        console.error("Error retrieving course enrollment records:", error);
       } finally {
         setLoading(false);
       }
     };
-    loadData();
+
+    loadCourses();
   }, [student_id, token]);
 
   if (loading) {
-    return <div className="text-center py-10 text-gray-600">Loading courses...</div>;
+    return (
+      <div className={styles.loading}>
+        Loading enrolled courses…
+      </div>
+    );
   }
 
   if (!courses.length) {
-    return <div className="text-center py-10 text-red-500">No courses found.</div>;
+    return (
+      <div className={styles.noData}>
+        No enrolled courses found.
+      </div>
+    );
   }
 
-  // ✅ Group courses by term & year
+  // Group by Term + Year
   const groupedResults = courses.reduce((acc, course) => {
-    const termYear = `${getTerm(course.tra_term)} ${course.tra_year}`;
-    if (!acc[termYear]) acc[termYear] = [];
-    acc[termYear].push(course);
+    const key = `${formatTerm(course.tra_term)} ${course.tra_year}`;
+    if (!acc[key]) acc[key] = [];
+    acc[key].push(course);
     return acc;
   }, {});
 
-  // ✅ Export to PDF
+  // PDF Export
   const exportPDF = () => {
     const doc = new jsPDF();
+
     doc.setFontSize(18);
-    doc.text("Student Course Enrollment", 14, 22);
-    let yOffset = 30;
+    doc.text("Student Course Enrollment Report", 14, 20);
+
+    let yPos = 28;
 
     Object.keys(groupedResults).forEach((termYear) => {
       doc.setFontSize(14);
-      doc.setTextColor(40);
-      doc.text(termYear, 14, yOffset);
-      yOffset += 4;
+      doc.text(termYear, 14, yPos);
+      yPos += 6;
 
-      const tableColumn = [
+      const tableColumns = [
         "Module Code",
         "Module Name",
         "Credit",
-        "Lab",
         "Group",
         "Faculty",
-        "Designation",
         "Department",
         "Reg. Status",
       ];
 
-      const tableRows = groupedResults[termYear].map((course) => [
-        course.moduleCode,
-        course.mod_name,
-        course.mod_credit_hour,
-        course.mod_lab_included ? "Yes" : "No",
-        course.mod_group,
-        course.faculty_name,
-        course.fac_designation,
-        course.dpt_code,
-        course.reg_status,
+      const tableRows = groupedResults[termYear].map((crs) => [
+        crs.module_code,
+        crs.mod_name,
+        crs.mod_credit_hour,
+        crs.mod_group,
+        crs.faculty_name,
+        crs.dpt_code,
+        crs.reg_status,
       ]);
 
       autoTable(doc, {
-        startY: yOffset,
-        head: [tableColumn],
+        startY: yPos,
+        head: [tableColumns],
         body: tableRows,
         theme: "grid",
-        headStyles: { fillColor: [59, 130, 246], textColor: 255 },
-        margin: { left: 14, right: 14 },
+        headStyles: { fillColor: [25, 70, 150] },
         styles: { fontSize: 9 },
+        margin: { left: 14, right: 14 },
       });
 
-      yOffset = doc.lastAutoTable.finalY + 10;
+      yPos = doc.lastAutoTable.finalY + 10;
     });
 
-    doc.save(`Student_${student_id}_Courses.pdf`);
+    doc.save(`Enrolled_Courses_${student_id}.pdf`);
   };
 
   return (
-    <div className="p-6">
-      <div className="flex items-center justify-between mb-8">
-        <h1 className="text-3xl font-bold text-blue-700">My Enrolled Courses</h1>
-        <button
-          onClick={exportPDF}
-          className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition"
-        >
+    <div className={styles.container}>
+      {/* PAGE HEADER */}
+      <div className={styles.header}>
+        <h1 className={styles.title}>My Enrolled Courses</h1>
+
+        <button className={styles.pdfButton} onClick={exportPDF}>
           Export as PDF
         </button>
       </div>
 
+      {/* TERM-WISE COURSE DISPLAY */}
       {Object.keys(groupedResults).map((termYear) => (
-        <div key={termYear} className="mb-10">
-          <h2 className="text-xl font-semibold text-indigo-600 mb-4 border-b pb-2">
-            {termYear}
-          </h2>
+        <div key={termYear} className={styles.termSection}>
+          <h2 className={styles.termHeading}>{termYear}</h2>
 
-          <div className="overflow-x-auto bg-white shadow-lg rounded-lg">
-            <table className="w-full border-collapse">
-              <thead className="bg-gray-100">
+          <div className={styles.tableWrapper}>
+            <table className={styles.table}>
+              <thead>
                 <tr>
-                  <th className="px-4 py-2 border">Module Code</th>
-                  <th className="px-4 py-2 border">Module Name</th>
-                  <th className="px-4 py-2 border">Credit</th>
-                  <th className="px-4 py-2 border">Lab Included</th>
-                  <th className="px-4 py-2 border">Group</th>
-                  <th className="px-4 py-2 border">Faculty</th>
-                  <th className="px-4 py-2 border">Designation</th>
-                  <th className="px-4 py-2 border">Department</th>
-                  <th className="px-4 py-2 border">Reg. Status</th>
+                  <th>Module Code</th>
+                  <th>Module Name</th>
+                  <th>Credit</th>
+                  <th>Group</th>
+                  <th>Faculty</th>
+                  <th>Department</th>
+                  <th>Reg. Status</th>
                 </tr>
               </thead>
+
               <tbody>
-                {groupedResults[termYear].map((course, idx) => (
-                  <tr
-                    key={`${course.moduleCode}-${idx}`}
-                    className="text-center hover:bg-gray-50"
-                  >
-                    <td className="px-4 py-2 border">{course.moduleCode}</td>
-                    <td className="px-4 py-2 border">{course.mod_name}</td>
-                    <td className="px-4 py-2 border">{course.mod_credit_hour}</td>
-                    <td className="px-4 py-2 border">
-                      {course.mod_lab_included ? "Yes" : "No"}
-                    </td>
-                    <td className="px-4 py-2 border">{course.mod_group}</td>
-                    <td className="px-4 py-2 border">{course.faculty_name}</td>
-                    <td className="px-4 py-2 border">{course.fac_designation}</td>
-                    <td className="px-4 py-2 border">{course.dpt_code}</td>
-                    <td className="px-4 py-2 border">{course.reg_status}</td>
+                {groupedResults[termYear].map((course, index) => (
+                  <tr key={`${course.module_code}-${index}`}>
+                    <td>{course.module_code}</td>
+                    <td>{course.mod_name}</td>
+                    <td>{course.mod_credit_hour}</td>
+                    <td>{course.mod_group}</td>
+                    <td>{course.faculty_name}</td>
+                    <td>{course.dpt_code}</td>
+                    <td>{course.reg_status}</td>
                   </tr>
                 ))}
               </tbody>

@@ -1,58 +1,48 @@
 import React, { useEffect, useState } from "react";
 import { fetchResults } from "../api/results";
 import jsPDF from "jspdf";
-import autoTable from "jspdf-autotable"; // ✅ Correct import for modern builds
+import autoTable from "jspdf-autotable";
+import styles from "./Results.module.css";
 
 const Results = ({ student_id, token }) => {
   const [groupedResults, setGroupedResults] = useState({});
 
-  
-  const getTerm = (term) => {
-    if (term === 1) return "Spring";
-    else if (term === 2) return "Summer";
-    else if (term === 3) return "Autumn";
-    else return "Not specified";
-  };
-
-
+  // Fetch and group academic results
   useEffect(() => {
-    const loadData = async () => {
+    const loadResults = async () => {
       try {
-        const fetchData = await fetchResults(student_id, token);
-        console.log(fetchData);
-        // ✅ Group results by term + year        
-        const grouped = fetchData.reduce((acc, item) => {
-          const key = `${getTerm(item.exm_examTerm)} ${item.exm_examYear}`;
+        const data = await fetchResults(student_id, token);
+
+        const grouped = data.reduce((acc, item) => {
+          const key = `${item.exm_exam_term} ${item.exm_exam_year}`;
           if (!acc[key]) acc[key] = [];
           acc[key].push(item);
           return acc;
         }, {});
 
         setGroupedResults(grouped);
-      } catch (err) {
-        console.error("❌ Failed to load student result record", err);
+      } catch (error) {
+        console.error("Error retrieving student results:", error);
       }
     };
 
-    if (student_id && token) loadData();
+    if (student_id && token) loadResults();
   }, [student_id, token]);
 
-  // ✅ Export to PDF
+  // Export the academic transcript section as PDF
   const exportPDF = () => {
     const doc = new jsPDF();
     doc.setFontSize(18);
-    doc.text("Academic Performance", 14, 20);
+    doc.text("Student Academic Performance Report", 14, 20);
 
-    let yOffset = 30;
+    let yPos = 30;
 
     Object.keys(groupedResults).forEach((termYear) => {
-      // Term/Year heading
       doc.setFontSize(14);
-      doc.setTextColor(40);
-      doc.text(termYear, 14, yOffset);
-      yOffset += 5;
+      doc.text(termYear, 14, yPos);
+      yPos += 6;
 
-      const tableColumn = [
+      const columns = [
         "Module Code",
         "Module Name",
         "Credit",
@@ -61,80 +51,83 @@ const Results = ({ student_id, token }) => {
         "Real Grade Point",
       ];
 
-      const tableRows = groupedResults[termYear].map((course) => [
-        course.moduleCode,
-        course.mod_name,
-        course.mod_creditHour,
-        course.letterGrade,
-        course.check_grade_point,
-        course.real_gradepoint,
+      const rows = groupedResults[termYear].map((item) => [
+        item.module_code,
+        item.mod_name,
+        item.mod_credit_hour,
+        item.letter_grade,
+        item.grade_point,
+        item.real_gradepoint,
       ]);
 
-      // ✅ Use correct plugin invocation
       autoTable(doc, {
-        startY: yOffset,
-        head: [tableColumn],
-        body: tableRows,
+        startY: yPos,
+        head: [columns],
+        body: rows,
         theme: "grid",
         styles: { fontSize: 9 },
-        headStyles: { fillColor: [37, 99, 235], textColor: 255 },
+        headStyles: {
+          fillColor: [25, 70, 150],
+          textColor: 255,
+        },
         margin: { left: 14, right: 14 },
       });
 
-      yOffset = doc.lastAutoTable.finalY + 10;
+      yPos = doc.lastAutoTable.finalY + 12;
     });
 
-    doc.save(`Student_${student_id}_Results.pdf`);
+    doc.save(`Academic_Results_${student_id}.pdf`);
   };
 
   return (
-    <div className="p-6">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold">Academic Performance</h1>
-        <button
-          onClick={exportPDF}
-          className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition"
-        >
+    <div className={styles.container}>
+      {/* Header Section */}
+      <div className={styles.header}>
+        <h1 className={styles.title}>Academic Performance</h1>
+        <button onClick={exportPDF} className={styles.pdfButton}>
           Export as PDF
         </button>
       </div>
 
-      {Object.keys(groupedResults).length === 0 ? (
-        <p className="text-gray-500">No results available.</p>
-      ) : (
-        Object.keys(groupedResults).map((termYear) => (
-          <div key={termYear} className="mb-8">
-            <h2 className="text-xl font-semibold text-blue-600 mb-4">
-              {termYear}
-            </h2>
+      {/* No Data */}
+      {Object.keys(groupedResults).length === 0 && (
+        <p className={styles.noData}>No academic results available.</p>
+      )}
 
-            <table className="w-full border border-gray-300 rounded-lg shadow-sm">
-              <thead className="bg-gray-100">
+      {/* Term-wise Results */}
+      {Object.keys(groupedResults).map((termYear) => (
+        <div key={termYear} className={styles.termSection}>
+          <h2 className={styles.termHeading}>{termYear}</h2>
+
+          <div className={styles.tableWrapper}>
+            <table className={styles.table}>
+              <thead>
                 <tr>
-                  <th className="px-4 py-2 border">Module Code</th>
-                  <th className="px-4 py-2 border">Module Name</th>
-                  <th className="px-4 py-2 border">Credit</th>
-                  <th className="px-4 py-2 border">Grade</th>
-                  <th className="px-4 py-2 border">Grade Point</th>
-                  <th className="px-4 py-2 border">Real Grade Point</th>
+                  <th>Module Code</th>
+                  <th>Module Name</th>
+                  <th>Credit</th>
+                  <th>Grade</th>
+                  <th>Grade Point</th>
+                  <th>Real Grade Point</th>
                 </tr>
               </thead>
+
               <tbody>
-                {groupedResults[termYear].map((course) => (
-                  <tr key={course.offered_module_id} className="text-center">
-                    <td className="px-4 py-2 border">{course.moduleCode}</td>
-                    <td className="px-4 py-2 border">{course.mod_name}</td>
-                    <td className="px-4 py-2 border">{course.mod_creditHour}</td>
-                    <td className="px-4 py-2 border">{course.letterGrade}</td>
-                    <td className="px-4 py-2 border">{course.check_grade_point}</td>
-                    <td className="px-4 py-2 border">{course.real_gradepoint}</td>
+                {groupedResults[termYear].map((item) => (
+                  <tr key={item.module_code}>
+                    <td>{item.module_code}</td>
+                    <td>{item.mod_name}</td>
+                    <td>{item.mod_credit_hour}</td>
+                    <td>{item.letter_grade}</td>
+                    <td>{item.grade_point}</td>
+                    <td>{item.real_gradepoint}</td>
                   </tr>
                 ))}
               </tbody>
             </table>
           </div>
-        ))
-      )}
+        </div>
+      ))}
     </div>
   );
 };

@@ -1,38 +1,41 @@
 import React, { useEffect, useState } from "react";
-import { fetchStudentRecord } from "../api/student";
+import { fetchStudentRecord, fetchStudentPhoto } from "../api/student";
 import "./Profile.css";
 
 const Profile = ({ student_id, token }) => {
   const [student, setStudent] = useState(null);
+  const [photo, setPhoto] = useState(null);
+  const [photoError, setPhotoError] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const [photoError, setPhotoError] = useState(false); // 🧩 prevent infinite loop
 
   useEffect(() => {
     const loadData = async () => {
       try {
-        const data = await fetchStudentRecord(student_id, token);
-        setStudent(data);
+        const record = await fetchStudentRecord(student_id, token);
+        const photoBlobUrl = await fetchStudentPhoto(student_id, token);
+
+        setStudent(record);
+        setPhoto(photoBlobUrl);  // ✅ Correct
       } catch (err) {
-        console.error("❌ Failed to load student record:", err);
-        setError("Failed to load student information. Please try again later.");
+        console.error("❌ Failed to load student profile:", err);
+        setError("Unable to load student profile. Please try again later.");
       } finally {
         setLoading(false);
       }
     };
-    if (student_id && token) loadData();
+
+    if (student_id && token) {
+      loadData();
+    }
   }, [student_id, token]);
 
   const getTerm = (term) => {
     switch (term) {
-      case 1:
-        return "Spring";
-      case 2:
-        return "Summer";
-      case 3:
-        return "Autumn";
-      default:
-        return "Not specified";
+      case 1: return "Spring";
+      case 2: return "Summer";
+      case 3: return "Autumn";
+      default: return "Not specified";
     }
   };
 
@@ -40,10 +43,8 @@ const Profile = ({ student_id, token }) => {
   if (error) return <div className="profile-error">{error}</div>;
   if (!student) return <div className="profile-empty">No student data found.</div>;
 
-  // ✅ Dynamically load student photo from backend API
-  const photoUrl = photoError
-    ? "/default-avatar.jpg" // ✅ use fallback only once
-    : `http://127.0.0.1:8000/api/student-photo/${student_id}`;
+  // Choose correct photo source
+  const photoUrl = photoError ? "/default-avatar.jpg" : photo;
 
   return (
     <div className="profile-container">
@@ -51,18 +52,21 @@ const Profile = ({ student_id, token }) => {
 
       <div className="profile-card">
         <div className="profile-header">
+          
+          {/* Photo Section */}
           <div className="profile-photo">
             <img
               className="profile-photo"
               src={photoUrl}
               alt={`${student.per_name}'s Photo`}
               onError={() => {
-                console.warn("⚠️ Student photo not found, loading default image.");
-                setPhotoError(true); // ✅ triggers fallback once
+                console.warn("⚠️ Photo not found. Using default.");
+                setPhotoError(true);
               }}
             />
           </div>
 
+          {/* Student Information */}
           <div className="profile-info">
             <h2 className="profile-name">
               {student.per_title} {student.per_name}
@@ -85,7 +89,9 @@ const Profile = ({ student_id, token }) => {
         </div>
       </div>
 
+      {/* Additional Information */}
       <div className="profile-details">
+        
         <h3>Personal Information</h3>
         <div className="profile-grid">
           <div><strong>Date of Birth:</strong> {student.per_dateOfBirth}</div>
@@ -113,6 +119,7 @@ const Profile = ({ student_id, token }) => {
           <div><strong>Department:</strong> {student.dpt_officalNameforCertificate}</div>
           <div><strong>Programme Name:</strong> {student.pro_name}</div>
         </div>
+
       </div>
     </div>
   );

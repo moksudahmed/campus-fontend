@@ -5,7 +5,7 @@ import { useAuth } from "../provider/authProvider";
 import { login, forgotPassword } from "../api/auth";
 import "./Login.css";
 
-const Login = ({ username, setUsername, setStudentID }) => {
+const Login = ({ username, setUsername, setStudentID, setEmail }) => {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
@@ -26,17 +26,22 @@ const Login = ({ username, setUsername, setStudentID }) => {
         studentID: username,
         password : password
       }*/
-      const response = await login({username, password});
-     
+      const response = await login({username, password});     
       if (response?.access_token) {
-        const { access_token, student_id } = response;
-        localStorage.setItem("token", access_token);
-        setToken(access_token);
-        setStudentID(username);
+        const { access_token, student_id, email } = response;
 
-        setMessage("✅ Login successful! Redirecting...");
+        // Save to localStorage
+        localStorage.setItem("token", access_token);
+        localStorage.setItem("student_id", student_id);
+        localStorage.setItem("email", email);
+
+        setToken(access_token);
+        setStudentID(student_id);
+        setEmail(email);
+
         navigate("/", { replace: true });
-      } else {
+      }
+     else {
         setMessage("⚠️ Login failed: Invalid response from server.");
       }
     } catch (error) {

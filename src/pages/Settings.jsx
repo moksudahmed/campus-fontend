@@ -1,547 +1,398 @@
-import { useState } from 'react';
-import { Lock, Bell, Save, Eye, EyeOff, Shield, User, Mail, CheckCircle, AlertCircle } from 'lucide-react';
-import styles from './Settings.module.css';
+// src/pages/Setting.jsx
+import React, { useState, useEffect } from "react";
+import {
+  Lock,
+  Mail,
+  Save,
+  Eye,
+  EyeOff,
+  Shield,
+  User,
+  Bell,
+  CheckCircle,
+  AlertCircle,
+} from "lucide-react";
+import styles from "./Settings.module.css";
+import { changePassword, changeEmail } from "../api/auth";
 
-const Setting = ({ student_id, username, token }) => {
-  const [formData, setFormData] = useState({
-    student_id,
-    currentEmail: username,
+const initialStrength = { score: 0, label: "", percent: 0, color: "" };
+
+const Setting = ({ student_id, username, email: initialEmail, setEmail, token }) => {
+  const [form, setForm] = useState({
+    student_id: student_id || "",
+    currentEmail: initialEmail || "",
     newEmail: "",
     password: "",
     confirmPassword: "",
     notifications: true,
   });
 
-  const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [notification, setNotification] = useState({ show: false, type: '', message: '' });
-  const [passwordStrength, setPasswordStrength] = useState({ score: 0, text: '', color: '' });
-  const [activeSection, setActiveSection] = useState('password');
+  const [notification, setNotification] = useState(null); // { type: 'success'|'error', text }
+  const [strength, setStrength] = useState(initialStrength);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
+  const [activeTab, setActiveTab] = useState("password"); // 'email' | 'password' | 'notifications'
 
-  const calculatePasswordStrength = (password) => {
-    if (!password) return { score: 0, text: '', color: '' };
-    
-    let score = 0;
-    if (password.length >= 8) score++;
-    if (password.length >= 12) score++;
-    if (/[a-z]/.test(password) && /[A-Z]/.test(password)) score++;
-    if (/\d/.test(password)) score++;
-    if (/[^a-zA-Z0-9]/.test(password)) score++;
+  useEffect(() => {
+    // Keep local state synced if parent changes initialEmail
+    setForm((f) => ({ ...f, currentEmail: initialEmail || "" }));
+  }, [initialEmail]);
 
-    const strengths = [
-      { score: 0, text: '', color: '' },
-      { score: 1, text: 'Very Weak', color: 'bg-red' },
-      { score: 2, text: 'Weak', color: 'bg-orange' },
-      { score: 3, text: 'Fair', color: 'bg-yellow' },
-      { score: 4, text: 'Good', color: 'bg-blue' },
-      { score: 5, text: 'Strong', color: 'bg-green' }
-    ];
-
-    return strengths[score];
+  // small notification helper
+  const notify = (type, text, timeout = 4000) => {
+    setNotification({ type, text });
+    setTimeout(() => setNotification(null), timeout);
   };
 
-  const isValidEmail = (email) => {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return emailRegex.test(email);
+  const emailValid = (val) =>
+    /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test((val || "").trim());
+
+  const evaluateStrength = (pwd = "") => {
+    let score = 0;
+    if (pwd.length >= 8) score++;
+    if (pwd.length >= 12) score++;
+    if (/[a-z]/.test(pwd) && /[A-Z]/.test(pwd)) score++;
+    if (/\d/.test(pwd)) score++;
+    if (/[^A-Za-z0-9]/.test(pwd)) score++;
+
+    const mapping = {
+      0: { label: "Too Short", color: "#ef4444" },
+      1: { label: "Very Weak", color: "#ef4444" },
+      2: { label: "Weak", color: "#f97316" },
+      3: { label: "Fair", color: "#f59e0b" },
+      4: { label: "Good", color: "#3b82f6" },
+      5: { label: "Strong", color: "#10b981" },
+    };
+
+    const m = mapping[Math.min(score, 5)];
+    setStrength({ score, label: m.label, percent: (score / 5) * 100, color: m.color });
   };
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
-    setFormData({
-      ...formData,
-      [name]: type === "checkbox" ? checked : value,
-    });
-
-    if (name === 'password') {
-      setPasswordStrength(calculatePasswordStrength(value));
-    }
+    setForm((prev) => ({ ...prev, [name]: type === "checkbox" ? checked : value }));
+    if (name === "password") evaluateStrength(value);
   };
 
-  const showNotification = (type, message) => {
-    setNotification({ show: true, type, message });
-    setTimeout(() => {
-      setNotification({ show: false, type: '', message: '' });
-    }, 5000);
-  };
-
+  // === Password ===
   const handlePasswordSubmit = async (e) => {
-    e.preventDefault();
+    e && e.preventDefault();
 
-    if (!formData.password) {
-      showNotification('error', 'Please enter your new password.');
-      return;
-    }
-
-    if (formData.password.length < 8) {
-      showNotification('error', 'Password must be at least 8 characters long.');
-      return;
-    }
-
-    if (formData.password !== formData.confirmPassword) {
-      showNotification('error', 'Passwords do not match.');
-      return;
-    }
+    if (!form.password) return notify("error", "Please enter your new password.");
+    if (form.password.length < 8) return notify("error", "Password must be at least 8 characters.");
+    if (form.password !== form.confirmPassword) return notify("error", "Passwords do not match.");
 
     setLoading(true);
-
     try {
-      const payload = {
-        student_id: formData.student_id,
-        login_id: formData.currentEmail,
-        password: formData.password,
-      };
-
-      console.log('Password change payload:', payload);
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      
-      showNotification('success', 'Password updated successfully!');
-      setFormData(prev => ({ ...prev, password: '', confirmPassword: '' }));
-      setPasswordStrength({ score: 0, text: '', color: '' });
-      
-    } catch (error) {
-      console.error('Error updating password:', error);
-      showNotification('error', 'Failed to update password. Please try again later.');
+      await changePassword({ student_id: form.student_id, password: form.password }, token);
+      notify("success", "Password updated successfully.");
+      setForm((p) => ({ ...p, password: "", confirmPassword: "" }));
+      setStrength(initialStrength);
+    } catch (err) {
+      console.error("Password update failed:", err);
+      notify("error", err.message || "Failed to update password.");
     } finally {
       setLoading(false);
     }
   };
 
+  // === Email ===
   const handleEmailSubmit = async (e) => {
-    e.preventDefault();
+    e && e.preventDefault();
 
-    if (!formData.newEmail) {
-      showNotification('error', 'Please enter your new email address.');
-      return;
-    }
-
-    if (!isValidEmail(formData.newEmail)) {
-      showNotification('error', 'Please enter a valid email address.');
-      return;
-    }
-
-    if (formData.newEmail === formData.currentEmail) {
-      showNotification('error', 'New email must be different from current email.');
-      return;
-    }
+    if (!form.newEmail) return notify("error", "Please enter your new email address.");
+    if (!emailValid(form.newEmail)) return notify("error", "Please enter a valid email address.");
+    if (form.newEmail.trim() === form.currentEmail.trim()) return notify("error", "New email must be different.");
 
     setLoading(true);
-
     try {
-      const payload = {
-        student_id: formData.student_id,
-        current_email: formData.currentEmail,
-        new_email: formData.newEmail,
-      };
-
-      console.log('Email change payload:', payload);
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      
-      showNotification('success', 'Email updated successfully! Please verify your new email.');
-      setFormData(prev => ({ ...prev, currentEmail: prev.newEmail, newEmail: '' }));
-      
-    } catch (error) {
-      console.error('Error updating email:', error);
-      showNotification('error', 'Failed to update email. Please try again later.');
+      await changeEmail({ student_id: form.student_id, new_email: form.newEmail.trim() }, token);
+      setForm((p) => ({ ...p, currentEmail: form.newEmail.trim(), newEmail: "" }));
+      setEmail && setEmail(form.newEmail.trim());
+      localStorage.setItem("email", form.newEmail.trim());
+      notify("success", "Email updated. Please verify your new email.");
+    } catch (err) {
+      console.error("Email update failed:", err);
+      notify("error", err.message || "Failed to update email.");
     } finally {
       setLoading(false);
     }
   };
 
+  // === Notifications ===
   const handleNotificationSubmit = async (e) => {
-    e.preventDefault();
+    e && e.preventDefault();
     setLoading(true);
-
     try {
-      const payload = {
-        student_id: formData.student_id,
-        notifications: formData.notifications,
-      };
-
-      console.log('Notification settings payload:', payload);
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      showNotification('success', 'Notification preferences updated successfully!');
-      
-    } catch (error) {
-      console.error('Error updating notifications:', error);
-      showNotification('error', 'Failed to update notification preferences.');
+      // send to server if needed - here simulated
+      await new Promise((res) => setTimeout(res, 700));
+      notify("success", "Notification preferences saved.");
+    } catch (err) {
+      notify("error", "Failed to save preferences.");
     } finally {
       setLoading(false);
     }
-  };
-
-  const getStrengthClass = () => {
-    if (passwordStrength.score <= 2) return 'very-weak';
-    if (passwordStrength.score === 3) return 'fair';
-    if (passwordStrength.score === 4) return 'good';
-    return 'strong';
   };
 
   return (
-    <div className={styles.settingsContainer}>
-      <div className={styles.settingsWrapper}>
-        
-        {/* Notification Toast */}
-        {notification.show && (
-          <div className={`${styles.notificationToast} ${notification.type === 'success' ? styles.success : styles.error}`}>
-            {notification.type === 'success' ? (
-              <CheckCircle className={styles.notificationToastIcon} />
-            ) : (
-              <AlertCircle className={styles.notificationToastIcon} />
-            )}
-            <p className={styles.notificationToastMessage}>{notification.message}</p>
+    <div className={styles.container}>
+      {/* Notification / Toast */}
+      {notification && (
+        <div
+          className={`${styles.toast} ${notification.type === "success" ? styles.success : styles.error}`}
+          role="status"
+          aria-live="polite"
+        >
+          {notification.type === "success" ? (
+            <CheckCircle className={styles.toastIcon} />
+          ) : (
+            <AlertCircle className={styles.toastIcon} />
+          )}
+          <span>{notification.text}</span>
+        </div>
+      )}
+
+      <header className={styles.header}>
+        <div className={styles.headerLeft}>
+          <div className={styles.headerIcon}>
+            <Shield />
           </div>
+          <div>
+            <h1 className={styles.title}>Account Settings</h1>
+            <p className={styles.subtitle}>Manage your account, security and notification preferences.</p>
+          </div>
+        </div>
+      </header>
+
+      <main className={styles.card}>
+        {/* Account Info */}
+        <section className={styles.accountInfo}>
+          <div className={styles.sectionTitleRow}>
+            <User className={styles.sectionIcon} />
+            <h2 className={styles.sectionTitle}>Account Information</h2>
+          </div>
+
+          <div className={styles.infoGrid}>
+            <div className={styles.infoItem}>
+              <label className={styles.infoLabel}>Student ID</label>
+              <div className={styles.infoValue}>{form.student_id || username || "—"}</div>
+            </div>
+
+            <div className={styles.infoItem}>
+              <label className={styles.infoLabel}>Email</label>
+              <div className={styles.infoValue}>{form.currentEmail || "—"}</div>
+            </div>
+          </div>
+        </section>
+
+        {/* Tabs */}
+        <nav className={styles.tabs}>
+          <button
+            className={`${styles.tab} ${activeTab === "email" ? styles.activeTab : ""}`}
+            onClick={() => setActiveTab("email")}
+            aria-pressed={activeTab === "email"}
+          >
+            <Mail className={styles.tabIcon} />
+            Change Email
+          </button>
+          <button
+            className={`${styles.tab} ${activeTab === "password" ? styles.activeTab : ""}`}
+            onClick={() => setActiveTab("password")}
+            aria-pressed={activeTab === "password"}
+          >
+            <Lock className={styles.tabIcon} />
+            Change Password
+          </button>
+          <button
+            className={`${styles.tab} ${activeTab === "notifications" ? styles.activeTab : ""}`}
+            onClick={() => setActiveTab("notifications")}
+            aria-pressed={activeTab === "notifications"}
+          >
+            <Bell className={styles.tabIcon} />
+            Notifications
+          </button>
+        </nav>
+
+        {/* Email Form */}
+        {activeTab === "email" && (
+          <section className={styles.formSection}>
+            <div className={styles.formHeader}>
+              <Mail className={styles.sectionIconLarge} />
+              <div>
+                <h3 className={styles.formTitle}>Email Settings</h3>
+                <p className={styles.formSubtitle}>Update the email address associated with your account.</p>
+              </div>
+            </div>
+
+            <form onSubmit={handleEmailSubmit} className={styles.form}>
+              <label className={styles.label}>Current Email</label>
+              <input className={styles.input} value={form.currentEmail} disabled />
+
+              <label htmlFor="newEmail" className={styles.label}>New Email</label>
+              <input
+                id="newEmail"
+                name="newEmail"
+                type="email"
+                className={styles.input}
+                value={form.newEmail}
+                onChange={handleChange}
+                placeholder="you@example.com"
+                aria-invalid={form.newEmail && !emailValid(form.newEmail)}
+              />
+
+              {form.newEmail && !emailValid(form.newEmail) && (
+                <p className={styles.fieldError}>Please enter a valid email address.</p>
+              )}
+
+              <div className={styles.actionsRow}>
+                <button
+                  type="button"
+                  onClick={handleEmailSubmit}
+                  disabled={loading || !form.newEmail || !emailValid(form.newEmail) || form.newEmail.trim() === form.currentEmail.trim()}
+                  className={`${styles.btn} ${styles.primary}`}
+                >
+                  <Save className={styles.btnIcon} />
+                  Update Email
+                </button>
+              </div>
+            </form>
+          </section>
         )}
 
-        {/* Header Card */}
-        <div className={styles.settingsHeader}>
-          <div className={styles.settingsHeaderContent}>
-            <div className={styles.settingsHeaderIcon}>
-              <Shield style={{ width: '2rem', height: '2rem', color: '#4f46e5' }} />
-            </div>
-            <div>
-              <h1 className={styles.settingsHeaderTitle}>Account Settings</h1>
-              <p className={styles.settingsHeaderSubtitle}>Manage your security and preferences</p>
-            </div>
-          </div>
-        </div>
-
-        {/* Main Settings Card */}
-        <div className={styles.settingsCard}>
-          
-          {/* Account Information */}
-          <div className={styles.accountInfoSection}>
-            <div className={styles.sectionHeader}>
-              <User className={styles.sectionHeaderIcon} />
-              <h2 className={styles.sectionTitle}>Account Information</h2>
-            </div>
-            
-            <div className={styles.accountInfoGrid}>
-              <div className={styles.infoCard}>
-                <label className={styles.infoCardLabel}>Student ID</label>
-                <div className={styles.infoCardContent}>
-                  <div className={`${styles.infoCardIconWrapper} ${styles.indigo}`}>
-                    <User style={{ width: '1rem', height: '1rem', color: '#4f46e5' }} />
-                  </div>
-                  <p className={styles.infoCardValue}>{student_id}</p>
-                </div>
-              </div>
-              
-              <div className={styles.infoCard}>
-                <label className={styles.infoCardLabel}>Current Email</label>
-                <div className={styles.infoCardContent}>
-                  <div className={`${styles.infoCardIconWrapper} ${styles.blue}`}>
-                    <Mail style={{ width: '1rem', height: '1rem', color: '#2563eb' }} />
-                  </div>
-                  <p className={styles.infoCardValue}>{formData.currentEmail}</p>
-                </div>
+        {/* Password Form */}
+        {activeTab === "password" && (
+          <section className={styles.formSection}>
+            <div className={styles.formHeader}>
+              <Lock className={styles.sectionIconLarge} />
+              <div>
+                <h3 className={styles.formTitle}>Security Settings</h3>
+                <p className={styles.formSubtitle}>Change your password periodically to keep your account secure.</p>
               </div>
             </div>
-          </div>
 
-          {/* Tab Navigation */}
-          <div className={styles.tabNavigation}>
-            <button
-              onClick={() => setActiveSection('email')}
-              className={`${styles.tabButton} ${activeSection === 'email' ? styles.active : ''}`}
-            >
-              <div className={styles.tabButtonContent}>
-                <Mail style={{ width: '1rem', height: '1rem' }} />
-                Change Email
-              </div>
-            </button>
-            <button
-              onClick={() => setActiveSection('password')}
-              className={`${styles.tabButton} ${activeSection === 'password' ? styles.active : ''}`}
-            >
-              <div className={styles.tabButtonContent}>
-                <Lock style={{ width: '1rem', height: '1rem' }} />
-                Change Password
-              </div>
-            </button>
-          </div>
-
-          {/* Email Change Section */}
-          {activeSection === 'email' && (
-            <div className={`${styles.formSection} ${styles.email}`}>
-              <div className={styles.sectionHeader}>
-                <Mail style={{ width: '1.25rem', height: '1.25rem', color: '#2563eb' }} />
-                <div>
-                  <h2 className={styles.sectionTitle}>Email Settings</h2>
-                  <p className={styles.sectionSubtitle}>Update your email address for account access</p>
-                </div>
-              </div>
-
-              <div className={styles.alertBox}>
-                <div className={styles.alertBoxContent}>
-                  <AlertCircle className={styles.alertBoxIcon} />
-                  <div className={styles.alertBoxText}>
-                    <p className={styles.alertBoxTitle}>Important:</p>
-                    <p>You'll need to verify your new email address. A verification link will be sent to your new email.</p>
-                  </div>
-                </div>
-              </div>
-
-              <div className={styles.formGroup}>
-                <label htmlFor="currentEmail" className={styles.formLabel}>
-                  Current Email Address
-                </label>
-                <div className={styles.inputWrapper}>
-                  <input
-                    id="currentEmail"
-                    type="email"
-                    value={formData.currentEmail}
-                    disabled
-                    className={styles.formInput}
-                  />
-                </div>
-              </div>
-
-              <div className={styles.formGroup}>
-                <label htmlFor="newEmail" className={styles.formLabel}>
-                  New Email Address
-                </label>
-                <div className={styles.inputWrapper}>
-                  <input
-                    id="newEmail"
-                    type="email"
-                    name="newEmail"
-                    value={formData.newEmail}
-                    onChange={handleChange}
-                    placeholder="Enter your new email address"
-                    className={styles.formInput}
-                  />
-                </div>
-                {formData.newEmail && !isValidEmail(formData.newEmail) && (
-                  <p className={`${styles.validationMessage} ${styles.error}`}>
-                    <AlertCircle className={styles.validationIcon} />
-                    Please enter a valid email address
-                  </p>
-                )}
-                {formData.newEmail && isValidEmail(formData.newEmail) && (
-                  <p className={`${styles.validationMessage} ${styles.success}`}>
-                    <CheckCircle className={styles.validationIcon} />
-                    Valid email format
-                  </p>
-                )}
-              </div>
-
-              <div className={styles.formActions}>
+            <form onSubmit={handlePasswordSubmit} className={styles.form}>
+              <label htmlFor="password" className={styles.label}>New Password</label>
+              <div className={styles.passwordRow}>
+                <input
+                  id="password"
+                  name="password"
+                  type={showPassword ? "text" : "password"}
+                  className={styles.input}
+                  value={form.password}
+                  onChange={handleChange}
+                  placeholder="Enter new password"
+                />
                 <button
-                  onClick={handleEmailSubmit}
-                  disabled={loading || !formData.newEmail || !isValidEmail(formData.newEmail) || formData.newEmail === formData.currentEmail}
-                  className={`${styles.submitButton} ${styles.blue}`}
+                  type="button"
+                  className={styles.iconButton}
+                  onClick={() => setShowPassword((s) => !s)}
+                  aria-label={showPassword ? "Hide password" : "Show password"}
                 >
-                  {loading ? (
-                    <>
-                      <div className={styles.loadingSpinner}></div>
-                      Updating...
-                    </>
-                  ) : (
-                    <>
-                      <Save className={styles.submitButtonIcon} />
-                      Update Email
-                    </>
-                  )}
+                  {showPassword ? <EyeOff /> : <Eye />}
                 </button>
               </div>
-            </div>
-          )}
 
-          {/* Password Section */}
-          {activeSection === 'password' && (
-            <div className={`${styles.formSection} ${styles.password}`}>
-              <div className={styles.sectionHeader}>
-                <Lock style={{ width: '1.25rem', height: '1.25rem', color: '#4f46e5' }} />
-                <div>
-                  <h2 className={styles.sectionTitle}>Security Settings</h2>
-                  <p className={styles.sectionSubtitle}>Update your password to keep your account secure</p>
-                </div>
-              </div>
-
-              <div className={styles.formGroup}>
-                <label htmlFor="password" className={styles.formLabel}>
-                  New Password
-                </label>
-                <div className={styles.inputWrapper}>
-                  <input
-                    id="password"
-                    type={showPassword ? "text" : "password"}
-                    name="password"
-                    value={formData.password}
-                    onChange={handleChange}
-                    placeholder="Enter your new password"
-                    className={`${styles.formInput} ${styles.withIcon}`}
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className={styles.passwordToggle}
-                  >
-                    {showPassword ? <EyeOff className={styles.passwordToggleIcon} /> : <Eye className={styles.passwordToggleIcon} />}
-                  </button>
-                </div>
-                
-                {formData.password && (
-                  <div className={styles.passwordStrength}>
-                    <div className={styles.passwordStrengthHeader}>
-                      <span className={styles.passwordStrengthLabel}>Password Strength:</span>
-                      <span className={`${styles.passwordStrengthText} ${styles[getStrengthClass()]}`}>
-                        {passwordStrength.text}
-                      </span>
-                    </div>
-                    <div className={styles.passwordStrengthBar}>
-                      <div 
-                        className={`${styles.passwordStrengthFill} ${styles[passwordStrength.color]}`}
-                        style={{ width: `${(passwordStrength.score / 5) * 100}%` }}
+              {/* Strength */}
+              {form.password && (
+                <>
+                  <div className={styles.strengthRow}>
+                    <div className={styles.strengthBar}>
+                      <div
+                        className={styles.strengthFill}
+                        style={{ width: `${strength.percent}%`, background: strength.color }}
                       />
                     </div>
-                    <ul className={styles.passwordRequirements}>
-                      <li className={`${styles.passwordRequirement} ${formData.password.length >= 8 ? styles.met : ''}`}>
-                        {formData.password.length >= 8 ? '✓' : '○'} At least 8 characters
-                      </li>
-                      <li className={`${styles.passwordRequirement} ${/[A-Z]/.test(formData.password) && /[a-z]/.test(formData.password) ? styles.met : ''}`}>
-                        {/[A-Z]/.test(formData.password) && /[a-z]/.test(formData.password) ? '✓' : '○'} Upper and lowercase letters
-                      </li>
-                      <li className={`${styles.passwordRequirement} ${/\d/.test(formData.password) ? styles.met : ''}`}>
-                        {/\d/.test(formData.password) ? '✓' : '○'} At least one number
-                      </li>
-                      <li className={`${styles.passwordRequirement} ${/[^a-zA-Z0-9]/.test(formData.password) ? styles.met : ''}`}>
-                        {/[^a-zA-Z0-9]/.test(formData.password) ? '✓' : '○'} Special character (!, @, #, etc.)
-                      </li>
-                    </ul>
+                    <div className={styles.strengthLabel}>{strength.label}</div>
                   </div>
-                )}
-              </div>
 
-              <div className={styles.formGroup}>
-                <label htmlFor="confirmPassword" className={styles.formLabel}>
-                  Confirm New Password
-                </label>
-                <div className={styles.inputWrapper}>
-                  <input
-                    id="confirmPassword"
-                    type={showConfirmPassword ? "text" : "password"}
-                    name="confirmPassword"
-                    value={formData.confirmPassword}
-                    onChange={handleChange}
-                    placeholder="Confirm your new password"
-                    className={`${styles.formInput} ${styles.withIcon}`}
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                    className={styles.passwordToggle}
-                  >
-                    {showConfirmPassword ? <EyeOff className={styles.passwordToggleIcon} /> : <Eye className={styles.passwordToggleIcon} />}
-                  </button>
-                </div>
-                {formData.confirmPassword && formData.password !== formData.confirmPassword && (
-                  <p className={`${styles.validationMessage} ${styles.error}`}>
-                    <AlertCircle className={styles.validationIcon} />
-                    Passwords do not match
-                  </p>
-                )}
-                {formData.confirmPassword && formData.password === formData.confirmPassword && (
-                  <p className={`${styles.validationMessage} ${styles.success}`}>
-                    <CheckCircle className={styles.validationIcon} />
-                    Passwords match
-                  </p>
-                )}
-              </div>
+                  <ul className={styles.requirements}>
+                    <li className={form.password.length >= 8 ? styles.met : ""}>At least 8 characters</li>
+                    <li className={/[A-Z]/.test(form.password) && /[a-z]/.test(form.password) ? styles.met : ""}>Upper & lower case letters</li>
+                    <li className={/\d/.test(form.password) ? styles.met : ""}>At least one number</li>
+                    <li className={/[^A-Za-z0-9]/.test(form.password) ? styles.met : ""}>Special character</li>
+                  </ul>
+                </>
+              )}
 
-              <div className={styles.formActions}>
+              <label htmlFor="confirmPassword" className={styles.label}>Confirm New Password</label>
+              <div className={styles.passwordRow}>
+                <input
+                  id="confirmPassword"
+                  name="confirmPassword"
+                  type={showConfirm ? "text" : "password"}
+                  className={styles.input}
+                  value={form.confirmPassword}
+                  onChange={handleChange}
+                  placeholder="Confirm new password"
+                />
                 <button
-                  onClick={handlePasswordSubmit}
-                  disabled={loading || !formData.password || formData.password !== formData.confirmPassword}
-                  className={`${styles.submitButton} ${styles.primary}`}
+                  type="button"
+                  className={styles.iconButton}
+                  onClick={() => setShowConfirm((s) => !s)}
+                  aria-label={showConfirm ? "Hide confirm password" : "Show confirm password"}
                 >
-                  {loading ? (
-                    <>
-                      <div className={styles.loadingSpinner}></div>
-                      Updating...
-                    </>
-                  ) : (
-                    <>
-                      <Save className={styles.submitButtonIcon} />
-                      Update Password
-                    </>
-                  )}
+                  {showConfirm ? <EyeOff /> : <Eye />}
                 </button>
               </div>
-            </div>
-          )}
 
-          {/* Notifications Section */}
-          <div className={`${styles.formSection} ${styles.notifications}`}>
-            <div className={styles.sectionHeader}>
-              <Bell style={{ width: '1.25rem', height: '1.25rem', color: '#d97706' }} />
+              {form.confirmPassword && form.password !== form.confirmPassword && (
+                <p className={styles.fieldError}>Passwords do not match.</p>
+              )}
+
+              <div className={styles.actionsRow}>
+                <button
+                  type="button"
+                  onClick={handlePasswordSubmit}
+                  disabled={loading || !form.password || form.password !== form.confirmPassword}
+                  className={`${styles.btn} ${styles.primary}`}
+                >
+                  <Save className={styles.btnIcon} />
+                  Update Password
+                </button>
+              </div>
+            </form>
+          </section>
+        )}
+
+        {/* Notifications */}
+        {activeTab === "notifications" && (
+          <section className={styles.formSection}>
+            <div className={styles.formHeader}>
+              <Bell className={styles.sectionIconLarge} />
               <div>
-                <h2 className={styles.sectionTitle}>Notification Preferences</h2>
-                <p className={styles.sectionSubtitle}>Manage how you receive updates</p>
+                <h3 className={styles.formTitle}>Notification Preferences</h3>
+                <p className={styles.formSubtitle}>Control how you receive updates and alerts.</p>
               </div>
             </div>
 
-            <div className={styles.notificationToggleCard}>
-              <div className={styles.notificationToggleContent}>
+            <form onSubmit={handleNotificationSubmit} className={styles.form}>
+              <label className={styles.toggleLabel}>
                 <input
-                  id="notifications"
                   type="checkbox"
                   name="notifications"
-                  checked={formData.notifications}
+                  checked={form.notifications}
                   onChange={handleChange}
-                  className={styles.notificationCheckbox}
+                  className={styles.toggleInput}
                 />
-                <div style={{ flex: 1 }}>
-                  <label htmlFor="notifications" className={styles.notificationLabel}>
-                    Email Notifications
-                  </label>
-                  <p className={styles.notificationDescription}>
-                    Receive email notifications for course updates, announcements, and important deadlines
-                  </p>
-                </div>
+                <span className={styles.toggleText}>Email notifications for course updates & announcements</span>
+              </label>
+
+              <div className={styles.actionsRow}>
+                <button
+                  type="button"
+                  onClick={handleNotificationSubmit}
+                  disabled={loading}
+                  className={`${styles.btn} ${styles.secondary}`}
+                >
+                  <Save className={styles.btnIcon} />
+                  Save Preferences
+                </button>
               </div>
-            </div>
-
-            <div className={styles.formActions}>
-              <button
-                onClick={handleNotificationSubmit}
-                disabled={loading}
-                className={`${styles.submitButton} ${styles.amber}`}
-              >
-                {loading ? (
-                  <>
-                    <div className={styles.loadingSpinner}></div>
-                    Saving...
-                  </>
-                ) : (
-                  <>
-                    <Save className={styles.submitButtonIcon} />
-                    Save Preferences
-                  </>
-                )}
-              </button>
-            </div>
-          </div>
-        </div>
-
-        {/* Security Tips Card */}
-        <div className={styles.securityTips}>
-          <div className={styles.securityTipsContent}>
-            <Shield className={styles.securityTipsIcon} />
-            <div>
-              <h3 className={styles.securityTipsTitle}>Security Tips</h3>
-              <ul className={styles.securityTipsList}>
-                <li className={styles.securityTipsItem}>• Use a unique password you don't use anywhere else</li>
-                <li className={styles.securityTipsItem}>• Keep your email address up to date for account recovery</li>
-                <li className={styles.securityTipsItem}>• Never share your password with anyone</li>
-                <li className={styles.securityTipsItem}>• Change your password regularly (every 3-6 months)</li>
-              </ul>
-            </div>
-          </div>
-        </div>
-      </div>
+            </form>
+          </section>
+        )}
+      </main>
     </div>
   );
 };

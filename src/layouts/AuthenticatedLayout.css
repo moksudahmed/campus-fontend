@@ -25,7 +25,7 @@
 /* Center page content and limit width */
 .page-content {
   flex: 1;
-  padding: 24px;
+  padding: 60px;
   overflow-y: auto;
   display: flex;
   justify-content: center;
