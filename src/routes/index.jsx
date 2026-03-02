@@ -47,7 +47,7 @@ const AuthenticatedLayout = () => (
       <ul className="space-y-4">
         <li><Link to="/" className="block hover:text-gray-300">Dashboard</Link></li>
         <li><Link to="/profile" className="block hover:text-gray-300">Profile</Link></li>
-        <li><Link to="/results" className="block hover:text-gray-300">Results</Link></li>
+        <li><Link to="/academic-performance" className="block hover:text-gray-300">Academic Performance</Link></li>
         <li><Link to="/logout" className="block hover:text-gray-300">Logout</Link></li>
       </ul>
     </aside>
@@ -94,7 +94,7 @@ const AppRoutes2 = () => {
       children: [
         { path: "/", element: <Dashboard /> },
         { path: "/profile", element: <UserProfile /> },
-        { path: "/results", element: <Courses /> },
+        { path: "/academic-performance", element: <Courses /> },
         { path: "/logout", element: <Logout /> },
       ],
     },

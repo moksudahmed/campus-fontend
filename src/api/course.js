@@ -30,3 +30,24 @@ export const fetchCourses = async (studentId, token) => {
     );
   }
 };
+
+
+export const fetchCurrentTermCourses = async (studentId, token) => {
+  try {
+    const response = await axios.get(
+      `${API_BASE_URL}/course/enrolled/${studentId}`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+
+    return response.data;
+  } catch (error) {
+    console.error("Failed to fetch courses:", error);
+    throw new Error(
+      error.response?.data?.message || "Unable to retrieve courses."
+    );
+  }
+};

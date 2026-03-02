@@ -30,3 +30,23 @@ export const fetchResults = async (studentId, token) => {
     );
   }
 };
+
+export const fetchCurrentResults = async (studentId, token) => {
+  try {
+    const response = await axios.get(
+      `${API_BASE_URL}/result/current_term_results/${studentId}`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+
+    return response.data;
+  } catch (error) {
+    console.error("Failed to fetch student results:", error);
+    throw new Error(
+      error.response?.data?.message || "Unable to retrieve results."
+    );
+  }
+};

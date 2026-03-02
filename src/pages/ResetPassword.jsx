@@ -18,7 +18,7 @@ const ResetPassword = () => {
   
   // API base URL - adjust based on your environment
   const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:3000';
-  
+
   // Verify token on component mount
   useEffect(() => {
     const verifyToken = async () => {
@@ -28,11 +28,11 @@ const ResetPassword = () => {
         setTokenValid(false);
         return;
       }
-      
+        
       try {
         const response = await fetch(`${API_BASE_URL}frontend/api/verify-token?token=${token}`);
         const data = await response.json();
-       console.log(data);
+        //console.log(`${API_BASE_URL}frontend/api/verify-token?token=${token}`);
        
         if (data.valid) {
           setTokenValid(true);
@@ -77,11 +77,12 @@ const ResetPassword = () => {
       setMessage({ text: 'Password must be at least 8 characters', type: 'error' });
       return;
     }
-
+    
     setLoading(true);
     setMessage({ text: '', type: '' });
 
     try {
+      //console.log(token);
       const response = await fetch(`${API_BASE_URL}frontend/api/reset-password`, {
         method: 'POST',
         headers: {
@@ -92,7 +93,7 @@ const ResetPassword = () => {
           new_password: formData.password
         })
       });
-
+     
       const data = await response.json();
 
       if (response.ok && data.success) {

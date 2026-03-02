@@ -6,7 +6,27 @@ import qs from 'qs';
 const apiUrl = process.env.REACT_APP_API_URL;
 const API_URL = `${apiUrl}api/v1/auth/`;
 
-export const login = async (credentials) => {
+
+export async function login({username, password}) {
+  try {
+    const formData = new URLSearchParams();
+    formData.append("username", username); // must match form_data.username
+    formData.append("password", password); // must match form_data.password
+
+    const res = await axios.post(API_URL + "login", formData, {
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded",
+      },
+    });
+
+    return res.data;
+  } catch (err) {
+    console.error("Login API error:", err);
+    throw err;
+  }
+}
+
+export const login2 = async (credentials) => {
   try {
     // Prepare form data
     const formData = new FormData();
@@ -15,7 +35,7 @@ export const login = async (credentials) => {
     }
 
     // Send API request
-    const response = await axios.post(`${API_URL}login`, formData, {
+    const response = await axios.post(API_URL + "api/v1/auth/login", formData, {
       headers: {
         "Content-Type": "multipart/form-data",
       },
@@ -28,7 +48,7 @@ export const login = async (credentials) => {
       error.response?.data?.message ||
       error.response?.data?.detail ||
       "Unable to login. Please try again.";
-
+    console.error("Login API error:", error);
     console.error("❌ Login API error:", error.response?.data || error.message);
     throw new Error(message);
   }
@@ -73,7 +93,37 @@ export const fetchUsers = async (token) => {
   });  
   return response.data;
 };
+
 export const forgotPassword = async (data) => {
+  const email = data.email; // extract email from object
+  
+  
+  if (!email) throw new Error("Email is required");
+
+  const formData = { student_id: email }; // or email field as backend expects
+
+  const response = await fetch(`${apiUrl}frontend/api/forgot-password`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(formData),
+  });
+
+  let res = {};
+  try {
+    res = await response.json();
+  } catch (err) {
+    console.warn("Backend returned invalid JSON", err);
+    throw new Error("Invalid response from server");
+  }
+
+  if (!response.ok) {
+    throw new Error(res.detail || res.message || "Failed to send reset link.");
+  }
+
+  return res;
+};
+
+export const forgotPassword2 = async (data) => {
   const email = data.email; // extract email from object
   
   try {
@@ -81,7 +131,7 @@ export const forgotPassword = async (data) => {
       throw new Error("Email or username is required to reset password.");
     }
     
-    const response = await fetch(`http://127.0.0.1:8000/frontend/api/forgot-password/`, {
+    const response = await fetch(`${apiUrl}frontend/api/forgot-password/`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -123,7 +173,7 @@ export const deleteUser = async (id, token) => {
 export const changePassword = async (payload, token) => {  
   try {
     // Destructure and validate payload
-    console.log("Auth File", payload);
+    
     const { student_id, password } = payload;
     if (!student_id || !password) {
       throw new Error("Missing student ID or password.");
@@ -141,6 +191,7 @@ export const changePassword = async (payload, token) => {
       },
       body: JSON.stringify({
         //login_id,
+        token,
         student_id,
         new_password: password, // use consistent naming with backend
       }),

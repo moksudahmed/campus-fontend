@@ -1,17 +1,17 @@
 import React, { useEffect, useState } from "react";
-import { fetchCurrentResults } from "../api/results";
+import { fetchResults } from "../api/results";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import styles from "./academicperformance.module.css";
 
-const Results = ({ student_id, token }) => {
+const AcademicPerformance = ({ student_id, token }) => {
   const [groupedResults, setGroupedResults] = useState({});
 
   // Fetch and group academic results
   useEffect(() => {
     const loadResults = async () => {
       try {
-        const data = await fetchCurrentResults(student_id, token);
+        const data = await fetchResults(student_id, token);
 
         const grouped = data.reduce((acc, item) => {
           const key = `${item.exm_exam_term} ${item.exm_exam_year}`;
@@ -83,7 +83,7 @@ const Results = ({ student_id, token }) => {
     <div className={styles.container}>
       {/* Header Section */}
       <div className={styles.header}>
-        <h1 className={styles.title}>Curent term results</h1>
+        <h1 className={styles.title}>Academic Performance</h1>
         <button onClick={exportPDF} className={styles.pdfButton}>
           Export as PDF
         </button>
@@ -132,4 +132,4 @@ const Results = ({ student_id, token }) => {
   );
 };
 
-export default Results;
+export default AcademicPerformance;

@@ -9,6 +9,7 @@ import useAuthStorage from "../hooks/useAuthStorage";
 // Lazy Imports
 const Dashboard = lazy(() => import("../pages/Dashboard"));
 const Courses = lazy(() => import("../pages/Courses"));
+const AcademicPerformance = lazy(() => import("../pages/AcademicPerformance"));
 const Results = lazy(() => import("../pages/Results"));
 const Profile = lazy(() => import("../pages/Profile"));
 const Settings = lazy(() => import("../pages/Settings"));
@@ -70,8 +71,9 @@ const AppRoutes = () => {
         {
           element: <AuthenticatedLayout username={username} />,
           children: [
-            { index: true, element: <Suspense fallback={<Loader />}><Dashboard /></Suspense> },
+            { index: true, element: <Suspense fallback={<Loader />}><Dashboard student_id={studentID} token={token}/></Suspense> },
             { path: "courses", element: <Suspense fallback={<Loader />}><Courses student_id={studentID} token={token} /></Suspense> },
+            { path: "academic-performance", element: <Suspense fallback={<Loader />}><AcademicPerformance student_id={studentID} token={token} /></Suspense> },
             { path: "results", element: <Suspense fallback={<Loader />}><Results student_id={studentID} token={token} /></Suspense> },
             { path: "profile", element: <Suspense fallback={<Loader />}><Profile student_id={studentID} token={token} /></Suspense> },
             { path: "settings", element: <Suspense fallback={<Loader />}><Settings student_id={studentID} username={username} email={email} setEmail={setEmail} token={token} /></Suspense> },

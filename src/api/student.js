@@ -47,7 +47,7 @@ export const fetchStudentPhoto = async (student_id, token) => {
 
   try {
     const photoUrl = `${API_URL}/student-record/student-photo/${student_id}`;
-
+   
     // Fetch the image as blob
     const response = await axios.get(photoUrl, {
       headers: {
@@ -55,7 +55,7 @@ export const fetchStudentPhoto = async (student_id, token) => {
       },
       responseType: "blob",
     });
-
+    console.log(response);
     // Convert blob to a usable image URL
     return URL.createObjectURL(response.data);
 

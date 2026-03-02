@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { fetchCourses } from "../api/course";
+import { fetchCourses, fetchCurrentTermCourses } from "../api/course";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import styles from "./Courses.module.css";
@@ -27,6 +27,8 @@ const Courses = ({ student_id, token }) => {
     const loadCourses = async () => {
       try {
         const data = await fetchCourses(student_id, token);
+        const res = await fetchCurrentTermCourses(student_id, token);
+        console.log(res)
         setCourses(data || []);
       } catch (error) {
         console.error("Error retrieving course enrollment records:", error);
@@ -34,7 +36,7 @@ const Courses = ({ student_id, token }) => {
         setLoading(false);
       }
     };
-
+    
     loadCourses();
   }, [student_id, token]);
 

@@ -8,7 +8,8 @@ const Sidebar = () => (
     <nav className="sidebar-nav">
       <NavLink to="/" end className={({ isActive }) => isActive ? "active" : ""}>Dashboard</NavLink>
       <NavLink to="/courses" className={({ isActive }) => isActive ? "active" : ""}>Courses</NavLink>
-      <NavLink to="/results" className={({ isActive }) => isActive ? "active" : ""}>Academic Performance</NavLink>
+      <NavLink to="/academic-performance" className={({ isActive }) => isActive ? "active" : ""}>Academic Performance</NavLink>
+      <NavLink to="/results" className={({ isActive }) => isActive ? "active" : ""}>Results</NavLink>      
      {/* <NavLink to="/events" className={({ isActive }) => isActive ? "active" : ""}>Events</NavLink>
       <NavLink to="/messages" className={({ isActive }) => isActive ? "active" : ""}>Messages</NavLink>*/}
       <NavLink to="/profile" className={({ isActive }) => isActive ? "active" : ""}>Profile</NavLink>
