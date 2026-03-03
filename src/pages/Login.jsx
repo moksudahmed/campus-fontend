@@ -81,7 +81,7 @@ const Login = ({ username, setUsername, setStudentID, setEmail }) => {
   return (
     <div className="login-container">
       <form onSubmit={handleSubmit} className="login-form">
-        <h2 className="login-title">Welcome Back 👋</h2>
+        <h2 className="login-title">Welcome To Campus👋</h2>
         <p className="login-subtitle">Sign in to continue to your portal</p>
 
         {message && (
@@ -94,13 +94,13 @@ const Login = ({ username, setUsername, setStudentID, setEmail }) => {
           </div>
         )}
 
-        <label className="login-label">Login ID</label>
+        <label className="login-label">Student ID</label>
         <input
           type="text"
           value={username}
           onChange={(e) => setUsername(e.target.value)}
           className="login-input"
-          placeholder="Username or Email"
+          placeholder="Hints: 111-115-100"
           required
         />
 

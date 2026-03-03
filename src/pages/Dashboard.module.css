@@ -1,9 +1,37 @@
-/* === Page Container === */
-.container {
+/* === Background Wrapper with Logo === */
+.backgroundWrapper {
+  min-height: 100vh;
+  background-image: url("/public/logo.png");
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: 400px;
+  background-attachment: fixed;
+  position: relative;
+}
+
+/* === Soft White Overlay for Readability === */
+.overlay {
+  background: rgba(255, 255, 255, -0.01);
+  min-height: 100vh;
   padding: 24px;
+}
+
+/* === Main Container === */
+.container {
   display: flex;
   flex-direction: column;
   gap: 48px;
+}
+
+/* === Loading & No Data === */
+.loading,
+.noData {
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 1.2rem;
+  color: #374151;
 }
 
 /* === Stats Card Layout === */
@@ -17,27 +45,6 @@
   .cardGrid {
     grid-template-columns: repeat(3, 1fr);
   }
-}
-
-/* === Recent Activity Section === */
-.activitySection {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-}
-
-.activityTitle {
-  font-size: 1.75rem;
-  font-weight: 600;
-  color: #1f2937;
-  padding-bottom: 8px;
-  border-bottom: 2px solid #e5e7eb;
-}
-
-.activityList {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
 }
 
 /* === Icon Colors === */

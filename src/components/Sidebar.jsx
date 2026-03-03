@@ -4,18 +4,28 @@ import "./Sidebar.css";
 
 const Sidebar = () => (
   <aside className="sidebar">
-    <h2 className="sidebar-title">Student Portal</h2>
-    <nav className="sidebar-nav">
-      <NavLink to="/" end className={({ isActive }) => isActive ? "active" : ""}>Dashboard</NavLink>
-      <NavLink to="/courses" className={({ isActive }) => isActive ? "active" : ""}>Courses</NavLink>
-      <NavLink to="/academic-performance" className={({ isActive }) => isActive ? "active" : ""}>Academic Performance</NavLink>
-      <NavLink to="/results" className={({ isActive }) => isActive ? "active" : ""}>Results</NavLink>      
-     {/* <NavLink to="/events" className={({ isActive }) => isActive ? "active" : ""}>Events</NavLink>
-      <NavLink to="/messages" className={({ isActive }) => isActive ? "active" : ""}>Messages</NavLink>*/}
-      <NavLink to="/profile" className={({ isActive }) => isActive ? "active" : ""}>Profile</NavLink>
-      <NavLink to="/settings" className={({ isActive }) => isActive ? "active" : ""}>Settings</NavLink>
-      <NavLink to="/logout" className={({ isActive }) => isActive ? "active" : ""}>Logout</NavLink>      
-    </nav>
+    
+    {/* Top Section */}
+    <div className="sidebar-top">
+      <h2 className="sidebar-title">Student Portal</h2>
+
+      <nav className="sidebar-nav">
+        <NavLink to="/" end className={({ isActive }) => isActive ? "active" : ""}>Dashboard</NavLink>
+        <NavLink to="/courses" className={({ isActive }) => isActive ? "active" : ""}>Courses</NavLink>
+        <NavLink to="/academic-performance" className={({ isActive }) => isActive ? "active" : ""}>Academic Performance</NavLink>
+        <NavLink to="/results" className={({ isActive }) => isActive ? "active" : ""}>Results</NavLink>
+        <NavLink to="/profile" className={({ isActive }) => isActive ? "active" : ""}>Profile</NavLink>
+        <NavLink to="/settings" className={({ isActive }) => isActive ? "active" : ""}>Settings</NavLink>
+        <NavLink to="/logout" className={({ isActive }) => isActive ? "active" : ""}>Logout</NavLink>
+      </nav>
+    </div>
+
+    {/* Bottom Logo Section */}
+    <div className="sidebar-bottom">
+      <img src="/MU.jpg" alt="Student Portal Logo" className="sidebar-logo" />
+      <p className="sidebar-footer-text">© 2026 MUERP</p>
+    </div>
+
   </aside>
 );
 
