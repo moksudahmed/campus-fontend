@@ -1,0 +1,53 @@
+/* AuthenticatedLayout.css */
+
+/*
+  This is the single source of "full viewport height" for the
+  authenticated app shell. Nothing above it (#root, body) should
+  add its own min-height/padding, and nothing below it should
+  re-declare 100vh — that stacking is what caused the oversized
+  page and forced scrollbar.
+*/
+.authenticated-layout {
+  display: flex;
+  height: 100vh;      /* fixed, not min-height, so it can't grow past the viewport */
+  overflow: hidden;    /* the layout itself never scrolls; only .page-content does */
+  background-color: #f3f4f6;
+}
+
+.main-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  min-width: 0;   /* prevents flex children from forcing horizontal overflow */
+  height: 100%;
+  overflow: hidden;
+}
+
+/* Topbar sits in normal flow at the top of main-content (see Topbar.css —
+   position: absolute was removed there so it no longer overlaps content
+   or gets excluded from the height calculation). */
+.topbar {
+  flex-shrink: 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 20px;
+  background-color: #2c3e50;
+}
+
+/* Only this element scrolls. Content taller than the viewport scrolls
+   inside here — the outer page itself never needs to scroll. */
+.page-content {
+  flex: 1;
+  min-height: 0;   /* required so flex:1 + overflow-y:auto works correctly */
+  padding: 60px;
+  overflow-y: auto;
+  display: flex;
+  justify-content: center;
+}
+
+.page-content > * {
+  width: 100%;
+  max-width: 1200px; /* consistent page width */
+}

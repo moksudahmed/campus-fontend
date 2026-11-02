@@ -1,0 +1,62 @@
+.sidebar {
+  width: 240px;
+  flex-shrink: 0;         /* never let the flex row squeeze the sidebar */
+  background-color: #1f2937;
+  color: #fff;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between; /* Push bottom section down */
+  height: 100%;            /* fill the parent (.authenticated-layout, 100vh) */
+  overflow-y: auto;        /* if the nav list ever grows too tall, it scrolls internally */
+}
+
+/* === Top Section === */
+.sidebar-top {
+  display: flex;
+  flex-direction: column;
+}
+
+.sidebar-title {
+  font-size: 20px;
+  font-weight: bold;
+  margin-bottom: 24px;
+}
+
+/* === Navigation === */
+.sidebar-nav a {
+  display: block;
+  padding: 10px 12px;
+  border-radius: 8px;
+  text-decoration: none;
+  color: #d1d5db;
+  transition: background-color 0.2s;
+  margin-bottom: 6px;
+}
+
+.sidebar-nav a:hover {
+  background-color: #374151;
+}
+
+.sidebar-nav a.active {
+  background-color: #3b82f6;
+  color: white;
+}
+
+/* === Bottom Logo Section === */
+.sidebar-bottom {
+  text-align: center;
+  opacity: 0.85;
+}
+
+.sidebar-logo {
+  width: 190px;
+  margin-bottom: 8px;
+  object-fit: contain;
+  filter: brightness(1.2);
+}
+
+.sidebar-footer-text {
+  font-size: 0.75rem;
+  color: #9ca3af;
+}

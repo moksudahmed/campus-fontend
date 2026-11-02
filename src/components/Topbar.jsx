@@ -1,6 +1,6 @@
 import React from "react";
 import { User } from "lucide-react";
-import "./Topbar.css";
+import "../styles/Topbar.css";
 
 const Topbar = ({ username }) => {
   return (

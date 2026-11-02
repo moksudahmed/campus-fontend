@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import styles from "./Dashboard.module.css";
+import styles from "../styles/Dashboard.module.css";
 import { BookOpen, CalendarDays, MessageSquare } from "lucide-react";
 import DashboardCard from "../components/DashboardCard";
 import { fetchCurrentTermCourses } from "../api/course";

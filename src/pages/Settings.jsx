@@ -12,7 +12,7 @@ import {
   CheckCircle,
   AlertCircle,
 } from "lucide-react";
-import styles from "./Settings.module.css";
+import styles from "../styles/Settings.module.css";
 import { changePassword, changeEmail } from "../api/auth";
 
 const initialStrength = { score: 0, label: "", percent: 0, color: "" };

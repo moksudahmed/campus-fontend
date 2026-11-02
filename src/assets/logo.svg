@@ -1,0 +1,6 @@
+<svg width="220" height="56" viewBox="0 0 220 56" xmlns="http://www.w3.org/2000/svg">
+  <text x="0" y="28" font-family="Georgia, 'Times New Roman', serif" font-size="24" font-weight="700" fill="#1b2a4a">Metropolitan</text>
+  <text x="0" y="47" font-family="Arial, sans-serif" font-size="13" font-weight="700" letter-spacing="2" fill="#c0392b">UNIVERSITY</text>
+  <rect x="150" y="36" width="16" height="6" fill="#1b2a4a" transform="skewX(-20)"/>
+  <rect x="164" y="36" width="16" height="6" fill="#c0392b" transform="skewX(-20)"/>
+</svg>

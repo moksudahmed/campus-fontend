@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { fetchCourses, fetchCurrentTermCourses } from "../api/course";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
-import styles from "./Courses.module.css";
+import styles from "../styles/Courses.module.css";
 
 const Courses = ({ student_id, token }) => {
   const [courses, setCourses] = useState([]);

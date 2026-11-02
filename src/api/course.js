@@ -34,20 +34,31 @@ export const fetchCourses = async (studentId, token) => {
 
 export const fetchCurrentTermCourses = async (studentId, token) => {
   try {
-    const response = await axios.get(
+    const { data } = await axios.get(
       `${API_BASE_URL}/course/enrolled/${studentId}`,
       {
         headers: {
           Authorization: `Bearer ${token}`,
         },
+        timeout: 15000,
       }
     );
 
-    return response.data;
+    return data;
   } catch (error) {
-    console.error("Failed to fetch courses:", error);
-    throw new Error(
-      error.response?.data?.message || "Unable to retrieve courses."
-    );
+    if (error.response) {
+      throw new Error(
+        error.response.data?.message ||
+        "Unable to retrieve course information."
+      );
+    }
+
+    if (error.request) {
+      throw new Error(
+        "Unable to connect to the server. Please check your internet connection."
+      );
+    }
+
+    throw new Error("An unexpected error occurred.");
   }
 };

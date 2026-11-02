@@ -3,7 +3,7 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../provider/authProvider";
 import { login, forgotPassword } from "../api/auth";
-import "./Login.css";
+import "../styles/Login.css";
 
 const Login = ({ username, setUsername, setStudentID, setEmail }) => {
   const [password, setPassword] = useState("");
@@ -141,7 +141,7 @@ const Login = ({ username, setUsername, setStudentID, setEmail }) => {
                 type="text"
                 value={forgotEmail}
                 onChange={(e) => setForgotEmail(e.target.value)}
-                className="login-input"
+                className="modal-input"
                 placeholder="Email or Username"
               />
               <button

@@ -2,7 +2,7 @@ import React from "react";
 import { Outlet } from "react-router-dom";
 import Sidebar from "../components/Sidebar";
 import Topbar from "../components/Topbar";
-import "./AuthenticatedLayout.css";
+import '../styles/AuthenticatedLayout.css';
 
 const AuthenticatedLayout = ({ username }) => (
   <div className="authenticated-layout">

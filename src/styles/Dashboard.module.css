@@ -1,0 +1,76 @@
+/* === Background Wrapper with Logo === */
+/*
+  Changed min-height: 100vh -> min-height: 100% on both of these.
+  This component renders INSIDE .page-content, which already has a
+  fixed height (it's the scrollable region of a 100vh layout). Giving
+  a nested element its own 100vh made it demand a FULL extra viewport
+  height on top of everything already above it, which is what made
+  the page look oversized with empty space and a needless scrollbar.
+  100% correctly means "fill my parent", not "fill the whole screen again".
+*/
+.backgroundWrapper {
+  min-height: 100%;
+  background-image: url("/public/logo.png");
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: 400px;
+  background-attachment: fixed;
+  position: relative;
+}
+
+/* === Soft White Overlay for Readability === */
+.overlay {
+  background: rgba(255, 255, 255, 0.9);
+  min-height: 100%;
+  padding: 24px;
+}
+
+/* === Main Container === */
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: 48px;
+}
+
+/* === Loading & No Data === */
+.loading,
+.noData {
+  min-height: 60vh; /* enough to center nicely without forcing a full extra viewport */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 1.2rem;
+  color: #374151;
+}
+
+/* === Stats Card Layout === */
+.cardGrid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 24px;
+}
+
+@media (min-width: 768px) {
+  .cardGrid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+/* === Icon Colors === */
+.iconIndigo {
+  width: 32px;
+  height: 32px;
+  color: #4338ca;
+}
+
+.iconGreen {
+  width: 32px;
+  height: 32px;
+  color: #059669;
+}
+
+.iconYellow {
+  width: 32px;
+  height: 32px;
+  color: #ca8a04;
+}

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { fetchStudentRecord, fetchStudentPhoto } from "../api/student";
-import "./Profile.css";
+import "../styles/Profile.css";
 
 const Profile = ({ student_id, token }) => {
   const [student, setStudent] = useState(null);

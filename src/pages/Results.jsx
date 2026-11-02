@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { fetchCurrentResults } from "../api/results";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
-import styles from "./academicperformance.module.css";
+import styles from "../styles/academicperformance.module.css";
 
 const Results = ({ student_id, token }) => {
   const [groupedResults, setGroupedResults] = useState({});
