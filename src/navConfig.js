@@ -14,7 +14,8 @@ export const NAV_ITEMS = [
   { key: 'courses', label: 'Courses', icon: BookOpen },
   { key: 'performance', label: 'Academic Performance', icon: BarChart3 },
   { key: 'results', label: 'Results', icon: FileText },
-  { key: 'profile', label: 'Profile', icon: User },
+  { key: 'subject-registration', label: 'Subject Registration', icon: BookOpen }, 
+  { key: 'profile', label: 'Profile', icon: User },  
   { key: 'settings', label: 'Settings', icon: Settings },
 ];
 

@@ -1,4 +1,4 @@
-export const API_BASE_URL = (process.env.REACT_APP_API_BASE_URL || 'http://localhost:8000/api').replace(/\/$/, '');
+export const API_BASE_URL = (process.env.REACT_APP_API_BASE_URL || 'http://127.0.0.1:2096/').replace(/\/$/, '');
 export const DEMO_MODE = String(process.env.REACT_APP_DEMO_MODE || 'true').toLowerCase() === 'true';
 
 export const API_ENDPOINTS = {
@@ -15,5 +15,7 @@ export const API_ENDPOINTS = {
   currentTermCourses:'/api/v1/course/enrolled',      
   studentRecord:'/api/v1/student-record',
   studentPhoto:'/api/v1/student-record/student-photo',
-  currentTerm: '/api/v1/option/current-term',  
+  currentTerm: '/api/v1/option/current-term',
+  registrationApplications: "/api/v1/registration-applications",
+  mine: "/api/v1/registration-applications/mine",  
 };

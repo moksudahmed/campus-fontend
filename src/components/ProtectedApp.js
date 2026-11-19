@@ -15,6 +15,7 @@ import Results from "./Results";
 import Courses from "./Courses";
 import Placeholder from "./Placeholder";
 import AcademicPerformance from "./AcademicPerformance";
+import SubjectRegistration from "./SubjectRegistration";
 import Setting from "./Settings";
 
 import { stats } from "../studentData";
@@ -45,6 +46,12 @@ const PANEL_COPY = {
     title: "Results",
     message:
       "Semester results will be listed here as soon as they are released by the registrar.",
+  },
+  results: {
+    icon: FileText,
+    title: "Applications",
+    message:
+      "Application for course registration to the Office of the Controller of Examinations.",
   },
   settings: {
     icon: Settings,
@@ -453,6 +460,18 @@ export default function ProtectedApp() {
           student_id={studentId}
           token={token}
         />
+      );
+    }
+     if (activeTab === "subject-registration") {
+      return (
+        <SubjectRegistration
+          user= {student || user}
+          student_id={studentId}
+          token={token}
+          term={current_term}
+          year={current_year}
+        />
+        
       );
     }
 

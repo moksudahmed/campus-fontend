@@ -394,6 +394,234 @@ export async function apiRequest(
   return data;
 }
 
+export async function apiRequestJSON(
+  endpoint,
+  options = {},
+  retryOn401 = true
+) {
+  const url = buildUrl(endpoint);
+
+  /*
+  |--------------------------------------------------------------------------
+  | Get access token
+  |--------------------------------------------------------------------------
+  */
+
+  const accessToken = TokenService.getAccessToken();
+
+  /*
+  |--------------------------------------------------------------------------
+  | Prepare request body
+  |--------------------------------------------------------------------------
+  */
+
+  const originalBody = options.body;
+
+  const isFormData =
+    typeof FormData !== "undefined" &&
+    originalBody instanceof FormData;
+
+  const isURLSearchParams =
+    typeof URLSearchParams !== "undefined" &&
+    originalBody instanceof URLSearchParams;
+
+  const isBlob =
+    typeof Blob !== "undefined" &&
+    originalBody instanceof Blob;
+
+  const isArrayBuffer =
+    typeof ArrayBuffer !== "undefined" &&
+    originalBody instanceof ArrayBuffer;
+
+  const isJSONBody =
+    originalBody !== undefined &&
+    originalBody !== null &&
+    typeof originalBody === "object" &&
+    !isFormData &&
+    !isURLSearchParams &&
+    !isBlob &&
+    !isArrayBuffer;
+
+  // Serialize JavaScript objects exactly once.
+  const requestBody = isJSONBody
+    ? JSON.stringify(originalBody)
+    : originalBody;
+
+  /*
+  |--------------------------------------------------------------------------
+  | Headers
+  |--------------------------------------------------------------------------
+  */
+
+  const headers = new Headers(options.headers || {});
+
+  headers.set("Accept", "application/json");
+
+  /*
+  |--------------------------------------------------------------------------
+  | JSON Content-Type
+  |--------------------------------------------------------------------------
+  */
+
+  if (isJSONBody && !headers.has("Content-Type")) {
+    headers.set("Content-Type", "application/json");
+  }
+
+  /*
+  |--------------------------------------------------------------------------
+  | Authorization
+  |--------------------------------------------------------------------------
+  */
+
+  if (accessToken && !headers.has("Authorization")) {
+    headers.set(
+      "Authorization",
+      `Bearer ${accessToken}`
+    );
+  }
+
+  /*
+  |--------------------------------------------------------------------------
+  | Prepare request options
+  |--------------------------------------------------------------------------
+  */
+
+  const requestOptions = {
+    ...options,
+    headers,
+    body: requestBody,
+  };
+
+  /*
+  |--------------------------------------------------------------------------
+  | Debug request
+  |--------------------------------------------------------------------------
+  */
+
+  console.log("[API] Request URL:", url);
+  console.log("[API] Request method:", options.method || "GET");
+
+  if (isJSONBody) {
+    console.log("[API] JSON request body:", requestBody);
+  }
+
+  /*
+  |--------------------------------------------------------------------------
+  | Send request
+  |--------------------------------------------------------------------------
+  */
+
+  let response;
+
+  try {
+    response = await fetch(url, requestOptions);
+
+  } catch (error) {
+    console.error("[API] Network error:", error);
+
+    throw new Error(
+      "Unable to connect to the server."
+    );
+  }
+  console.log(response);
+  /*
+  |--------------------------------------------------------------------------
+  | Unauthorized - Refresh access token
+  |--------------------------------------------------------------------------
+  */
+
+  if (
+    response.status === 401 &&
+    retryOn401
+  ) {
+    try {
+      const newAccessToken =
+        await refreshAccessToken();
+
+      if (!newAccessToken) {
+        throw new Error(
+          "Unable to refresh access token."
+        );
+      }
+
+      /*
+      |--------------------------------------------------------------------------
+      | Retry original request with new token
+      |--------------------------------------------------------------------------
+      */
+
+      const retryHeaders = new Headers(headers);
+
+      retryHeaders.set(
+        "Authorization",
+        `Bearer ${newAccessToken}`
+      );
+
+      const retryResponse = await fetch(url, {
+        ...requestOptions,
+        headers: retryHeaders,
+      });
+
+      const retryData =
+        await parseResponse(retryResponse);
+
+      if (!retryResponse.ok) {
+        throw new Error(
+          getErrorMessage(
+            retryData,
+            `Request failed (${retryResponse.status}).`
+          )
+        );
+      }
+
+      return retryData;
+
+    } catch (error) {
+      console.error(
+        "[AUTH] Token refresh failed:",
+        error
+      );
+
+      TokenService.clearTokens();
+
+      throw new Error(
+        "Your session has expired. Please login again."
+      );
+    }
+  }
+
+  /*
+  |--------------------------------------------------------------------------
+  | Parse normal response
+  |--------------------------------------------------------------------------
+  */
+
+  const data = await parseResponse(response);
+
+  /*
+  |--------------------------------------------------------------------------
+  | Handle API errors
+  |--------------------------------------------------------------------------
+  */
+
+  if (!response.ok) {
+    throw new Error(
+      getErrorMessage(
+        data,
+        `Request failed (${response.status}).`
+      )
+    );
+  }
+
+  /*
+  |--------------------------------------------------------------------------
+  | Return successful response
+  |--------------------------------------------------------------------------
+  */
+
+  return data;
+}
+
 /*
 |--------------------------------------------------------------------------
 | Default Export

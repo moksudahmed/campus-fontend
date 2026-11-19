@@ -14,6 +14,7 @@ const Sidebar = () => (
         <NavLink to="/courses" className={({ isActive }) => isActive ? "active" : ""}>Courses</NavLink>
         <NavLink to="/academic-performance" className={({ isActive }) => isActive ? "active" : ""}>Academic Performance</NavLink>
         <NavLink to="/results" className={({ isActive }) => isActive ? "active" : ""}>Results</NavLink>
+        <NavLink to="/subject-registration" className={({ isActive }) => isActive ? "active" : ""}>Applications</NavLink>
         <NavLink to="/profile" className={({ isActive }) => isActive ? "active" : ""}>Profile</NavLink>
         <NavLink to="/settings" className={({ isActive }) => isActive ? "active" : ""}>Settings</NavLink>
         <NavLink to="/logout" className={({ isActive }) => isActive ? "active" : ""}>Logout</NavLink>
