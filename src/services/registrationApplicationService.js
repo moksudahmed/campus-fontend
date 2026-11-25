@@ -179,7 +179,7 @@ export const createApplication = async (payload) => {
       API_ENDPOINTS.registrationApplications;
 
     // Debug information
-    console.log(
+   /* console.log(
       '[REGISTRATION] Create application endpoint:',
       endpoint
     );
@@ -192,7 +192,7 @@ export const createApplication = async (payload) => {
     console.log(
       '[REGISTRATION] Serialized JSON:',
       jsonBody
-    );
+    );*/
 
     // Send POST request
     const response = await apiRequest(endpoint, {
@@ -203,10 +203,10 @@ export const createApplication = async (payload) => {
       body: jsonBody,
     });
     
-    console.log(
+    /*console.log(
       '[REGISTRATION] Application created successfully:',
       response
-    );
+    );*/
 
     return response;
 
@@ -589,7 +589,7 @@ export const addApplicationSubject = async (
       }/details`;
 
     // 9. Debug information
-    console.log(
+    /*console.log(
       "[REGISTRATION] Application ID:",
       cleanApplicationId
     );
@@ -602,7 +602,7 @@ export const addApplicationSubject = async (
     console.log(
       "[REGISTRATION] Request payload:",
       requestPayload
-    );
+    );*/
 
     // 10. Send POST request
     const response = await apiRequestJSON(endpoint, {
@@ -611,10 +611,10 @@ export const addApplicationSubject = async (
     });
 
     // 11. Return response
-    console.log(
+    /*console.log(
       "[REGISTRATION] Subject added successfully:",
       response
-    );
+    );*/
 
     return response;
 
@@ -753,22 +753,42 @@ export const fetchApplicationHistory = async (applicationId) => {
  * @param {number|string} year
  * @returns {Promise<Array>}
  */
-export const fetchAvailableSubjects = async (regi_type, term, year) => {
+
+export const fetchAvailableSubjects = async (
+  regi_type,
+  term,
+  year
+) => {
   try {
     if (!TokenService.hasAccessToken()) {
-      throw new Error("Your session has expired. Please login again.");
-    }        
-    
+      throw new Error(
+        "Your session has expired. Please login again."
+      );
+    }
+
+    if (
+      regi_type == null ||
+      term == null ||
+      year == null
+    ) {
+      throw new Error(
+        "Registration type, term, and year are required."
+      );
+    }
+
+    const params = new URLSearchParams({
+      regi_type: String(regi_type),
+      term: String(term),
+      year: String(year),
+    });
+
     const endpoint =
-      `${API_ENDPOINTS.registrationApplications}/available-subjects` +
-      `?regi_type=${encodeURIComponent(regi_type)}` +
-      `&term=${encodeURIComponent(term)}` +
-      `&year=${encodeURIComponent(year)}`;
-    
+      `${API_ENDPOINTS.registrationApplications}/available-subjects?${params.toString()}`;
+
     const data = await apiRequest(endpoint, {
       method: "GET",
     });
-    console.log(data);
+
     return data?.subjects || [];
 
   } catch (error) {
@@ -778,7 +798,10 @@ export const fetchAvailableSubjects = async (regi_type, term, year) => {
     );
 
     throw new Error(
-      getErrorMessage(error, "Unable to load available subjects.")
+      getErrorMessage(
+        error,
+        "Unable to load available subjects."
+      )
     );
   }
 };

@@ -899,11 +899,11 @@ const loadAvailableSubjects = useCallback(async () => {
         status: subject?.status ?? null,
       };
 
-      console.log("Adding registration subject:", {
+      /*console.log("Adding registration subject:", {
         applicationType,
         subjectId,
         payload,
-      });
+      });*/
 
       await addApplicationSubject(
         selectedApplication.application_id,
@@ -929,7 +929,7 @@ const loadAvailableSubjects = useCallback(async () => {
   /* ------------------------------------------------------------------------ */
 
   const handleRemoveSubject = async (detail) => {
-    console.log(detail);
+    
     if (
       !selectedApplication ||
       !detail?.application_detail_id ||

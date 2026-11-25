@@ -20,10 +20,47 @@ let refreshPromise = null;
 |--------------------------------------------------------------------------
 */
 
-function buildUrl(endpoint) {
+/*function buildUrl(endpoint) {
   return `${API_BASE_URL}${endpoint}`;
-}
+}*/
+/*
+|--------------------------------------------------------------------------
+| Build URL - PHP Proxy Compatible
+|--------------------------------------------------------------------------
+*/
 
+function buildUrl(endpoint) {
+  if (!endpoint) {
+    throw new Error("API endpoint is required.");
+  }
+
+  // Direct API URL (if configured)
+  if (
+    endpoint.startsWith("http://") ||
+    endpoint.startsWith("https://")
+  ) {
+    return endpoint;
+  }
+
+  // Normalize endpoint
+  const cleanEndpoint = endpoint.startsWith("/")
+    ? endpoint
+    : `/${endpoint}`;
+
+  /*
+   * API_BASE_URL:
+   * https://campus.metrouni.ac.bd/api/api.php
+   *
+   * Endpoint:
+   * /api/v1/registration-applications/available-subjects?regi_type=2&term=2&year=2026
+   */
+
+  const proxyUrl = new URL(API_BASE_URL);
+
+  proxyUrl.searchParams.set("path", cleanEndpoint);
+
+  return proxyUrl.toString();
+}
 /*
 |--------------------------------------------------------------------------
 | Parse Response
@@ -498,12 +535,12 @@ export async function apiRequestJSON(
   |--------------------------------------------------------------------------
   */
 
-  console.log("[API] Request URL:", url);
-  console.log("[API] Request method:", options.method || "GET");
+  //console.log("[API] Request URL:", url);
+  //console.log("[API] Request method:", options.method || "GET");
 
-  if (isJSONBody) {
+  /*if (isJSONBody) {
     console.log("[API] JSON request body:", requestBody);
-  }
+  }*/
 
   /*
   |--------------------------------------------------------------------------
@@ -523,7 +560,7 @@ export async function apiRequestJSON(
       "Unable to connect to the server."
     );
   }
-  console.log(response);
+  
   /*
   |--------------------------------------------------------------------------
   | Unauthorized - Refresh access token
